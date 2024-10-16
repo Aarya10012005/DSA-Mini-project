@@ -1,15 +1,23 @@
 #define BANK_NAME 16
 #define CR_DR 4
+#define QUARTER 16
 
 typedef struct amount {
     int srno;
-    char bankName[BANK_NAME];
+    // char bankName[BANK_NAME];
     int amount;
     struct amount *next;
 }amount;
 
+typedef struct quarter {
+    char quarter[QUARTER];
+    amount *amounts;
+}quarter;
+
 typedef struct year {
-    amount *jan, *feb, *march, *april, *may, *june, *july, *aug, *sept, *oct, *nov, *dec;
+    char year[4];
+    quarter *quarter1, *quarter2, *quarter3, *quarter4;
+    // amount *jan, *feb, *march, *april, *may, *june, *july, *aug, *sept, *oct, *nov, *dec;
 }year;
 
 typedef struct transaction {
@@ -19,13 +27,13 @@ typedef struct transaction {
 
 typedef struct root {
     char bankName[BANK_NAME];
-    transaction *left, *right;
+    transaction *credit, *debit;
 }root;
 
 typedef root* tree;
 
 // function definitions:
-void init(tree *root);
+void init(tree *root, int numberOfFiles, char *str);
 tree balance_bank1();
 tree balance_bank2();
 tree total_credit_bank1();
