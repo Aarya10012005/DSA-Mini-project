@@ -1,6 +1,9 @@
 #include "m-tree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include<string.h>
+#define BUFFER 256
+#define BANKNAME 100
 
 // creating the data structure
 void init(tree *root) {
@@ -36,4 +39,63 @@ void init(tree *root) {
 }
 void destroy(tree *root) {
     transaction *left, *right;
+}
+
+void combineFile(int argc, char *argv[]){
+		/* Allocate memory for file pointers and other variables */
+	FILE **fp = NULL, *newFile;
+	char line[BUFFER], *token, bank[BANKNAME];
+	
+	fp = (FILE **)calloc(argc - 1, sizeof(FILE *));
+	
+	/* Opening the bank statements in read mode */
+	for(int i = 0; i < (argc - 1); i++){
+		fp[i] = fopen(argv[i + 1], "r");
+		if(fp[i] == NULL){
+			printf("Error while opening the file!");
+			exit(1);
+		}
+	}
+
+	/* Opening new file to store all the combined bank statements */
+	newFile = fopen("./bank_statements/collective.csv", "a");
+	if(newFile == NULL){
+		printf("Error while creating a new file");
+		exit(1);
+	}
+
+	/* Writing the header row (from the first file) to the new file */
+	fgets(line, BUFFER, fp[0]);         /* Get the header row of the first file */
+	fputs("Bank Name,", newFile);       /* Add an extra column for bank name */
+	fputs(line, newFile);               /* Write the header to the new file */
+
+	/* Process each bank file */
+	for(int i = 1; i <= argc - 1; i++){
+		strcpy(bank, argv[i]);
+		token = strtok(bank, "/");  /* Extract bank name from the filename */
+		token = strtok(NULL, ".");
+
+		/* For the first file, the header has already been processed, so no need to skip the header */
+		if(i > 1){
+			fgets(line, BUFFER, fp[i - 1]);  /* Skip the header line for subsequent files */ 
+		}
+		
+		/* Read and write the transactions */
+		while(fgets(line, BUFFER, fp[i - 1]) != NULL){
+			/* Write the bank name and transaction data */
+			fputs(token, newFile);
+			fputs(",", newFile);
+			fputs(line, newFile);
+		}
+	}
+
+	/* Close all the files */
+	for(int i = 0; i < argc - 1; i++){
+		fclose(fp[i]);
+	}
+	fclose(newFile);
+
+	/* Free allocated memory */
+	free(fp);
+	return;
 }

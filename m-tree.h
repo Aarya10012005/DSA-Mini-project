@@ -34,3 +34,4 @@ tree total_debit_bank1();
 tree total_debit_bank2();
 void sort(); // on basis of amount/date/month
 void destroy(tree *root);
+void combineFile(int argc, char *argv[]);
