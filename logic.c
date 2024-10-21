@@ -12,7 +12,7 @@ void init(tree *bank, int numberOfFiles, char *bankName) {
         // (*bank) = (tree)malloc(sizeof(root));
 
         // assigning bank name to the root node element
-        strcpy(rootNode.bankName, bankName[i + 1]); 
+        strcpy(rootNode.bankName, bankName[i + 1]);
 
         // mallocing 2 children of root node
         rootNode.credit = (transaction *)malloc(sizeof(transaction));
@@ -20,7 +20,7 @@ void init(tree *bank, int numberOfFiles, char *bankName) {
         strcpy(credit->str, "Cr");
         rootNode.debit = (transaction *)malloc(sizeof(transaction));
         transaction *debit = rootNode.debit;
-        strcpy(debit->str, "Dr");     
+        strcpy(debit->str, "Dr");
 
         /*
         // callocing year and month nodes so that each points to null
@@ -97,7 +97,7 @@ void init(tree *bank, int numberOfFiles, char *bankName) {
     return;
 
 
-    /*/
+    /*
     // mallocing the root node
     (*bank) = (tree)malloc(sizeof(root));
 
@@ -130,6 +130,198 @@ void init(tree *bank, int numberOfFiles, char *bankName) {
     */
 }
 
-void destroy(tree *root) {
-    transaction *left, *right;
+void destroy(tree *bank, int numberOfFiles) {
+    root rootNode;
+    transaction *credit, *debit;
+    year *credit_year1, *credit_year2, *debit_year1, *debit_year2;
+    quarter *cr_y1_q1, *cr_y1_q2, *cr_y1_q3, *cr_y1_q4, *cr_y2_q1, *cr_y2_q2, *cr_y2_q3, *cr_y2_q4, *dr_y1_q1, *dr_y1_q2, *dr_y1_q3, *dr_y1_q4, *dr_y2_q1, *dr_y2_q2, *dr_y2_q3, *dr_y2_q4;
+    amount *amounts;
+    for(int i = 0; i < numberOfFiles; i++) {
+        rootNode = (*bank)[i];
+        credit = rootNode.credit;
+        debit = rootNode.debit;
+
+        credit_year1 = credit->year1;
+        credit_year2 = credit->year2;
+        debit_year1 = debit->year1;
+        debit_year2 = debit->year2;
+
+        cr_y1_q1 = credit_year1->quarter1;
+        cr_y1_q2 = credit_year1->quarter2;
+        cr_y1_q3 = credit_year1->quarter3;
+        cr_y1_q4 = credit_year1->quarter4;
+        cr_y2_q1 = credit_year2->quarter1;
+        cr_y2_q2 = credit_year2->quarter2;
+        cr_y2_q3 = credit_year2->quarter3;
+        cr_y2_q4 = credit_year2->quarter4;
+        dr_y1_q1 = debit_year1->quarter1;
+        dr_y1_q2 = debit_year1->quarter2;
+        dr_y1_q3 = debit_year1->quarter3;
+        dr_y1_q4 = debit_year1->quarter4;
+        dr_y2_q1 = debit_year2->quarter1;
+        dr_y2_q2 = debit_year2->quarter2;
+        dr_y2_q3 = debit_year2->quarter3;
+        dr_y2_q4 = debit_year2->quarter4;
+
+        // freeing amount nodes
+        amounts = cr_y1_q1->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y1_q2->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y1_q3->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y1_q4->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+
+        amounts = cr_y2_q1->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y2_q2->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y2_q3->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = cr_y2_q4->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+
+        amounts = dr_y1_q1->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y1_q2->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y1_q3->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y1_q4->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+
+        amounts = dr_y2_q1->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y2_q2->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y2_q3->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+        amounts = dr_y2_q4->amounts;
+        while(amounts != NULL) {
+            free(amounts);
+            amounts = amounts->next;
+        }
+
+        // freeing quarter nodes
+        if(cr_y1_q1 != NULL)
+            free(cr_y1_q1);
+
+        if(cr_y1_q2 != NULL)
+            free(cr_y1_q2);
+
+        if(cr_y1_q3 != NULL)
+            free(cr_y1_q3);
+
+        if(cr_y1_q4 != NULL)
+            free(cr_y1_q4);
+
+        if(cr_y2_q1 != NULL)
+            free(cr_y2_q1);
+
+        if(cr_y2_q2 != NULL)
+            free(cr_y2_q2);
+
+        if(cr_y2_q3 != NULL)
+            free(cr_y2_q3);
+
+        if(cr_y2_q4 != NULL)
+            free(cr_y2_q4);
+
+        if(dr_y1_q1 != NULL)
+            free(dr_y1_q1);
+
+        if(dr_y1_q2 != NULL)
+            free(dr_y1_q2);
+
+        if(dr_y1_q3 != NULL)
+            free(dr_y1_q3);
+
+        if(dr_y1_q4 != NULL)
+            free(dr_y1_q4);
+
+        if(dr_y2_q1 != NULL)
+            free(dr_y2_q1);
+
+        if(dr_y2_q2 != NULL)
+            free(dr_y2_q2);
+
+        if(dr_y2_q3 != NULL)
+            free(dr_y2_q3);
+
+        if(dr_y2_q4 != NULL)
+            free(dr_y2_q4);
+
+        // freeing year nodes
+        if(credit_year1 != NULL)
+            free(credit_year1);
+        if(credit_year2 != NULL)
+            free(credit_year2);
+        if(debit_year1 != NULL)
+            free(debit_year1);
+        if(debit_year2 != NULL)
+            free(debit_year2);
+
+        // freeing cr/dr (transaction) nodes
+        if(credit != NULL)
+            free(credit);
+        if(debit != NULL)
+            free(debit);
+        
+        // credit = (*bank)[i].credit;
+        // credit_year1 = credit->year1;
+        // // freeing all quarter nodes
+        // for(int j = 0; j < 4; j++) {
+        //     quarter = credit_year1->quarter1;
+        // }
+
+    }
+    // freeing the malloced memory of root nodes
+    free((*bank));
+    return;
 }

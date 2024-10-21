@@ -33,7 +33,7 @@ typedef struct root {
 typedef root* tree;
 
 // function definitions:
-void init(tree *root, int numberOfFiles, char *str);
+void init(tree *bank, int numberOfFiles, char *str);
 tree balance_bank1();
 tree balance_bank2();
 tree total_credit_bank1();
@@ -41,4 +41,4 @@ tree total_credit_bank2();
 tree total_debit_bank1();
 tree total_debit_bank2();
 void sort(); // on basis of amount/date/month
-void destroy(tree *root);
+void destroy(tree *bank, int numberOfFiles);
