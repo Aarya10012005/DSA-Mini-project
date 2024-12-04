@@ -22,7 +22,7 @@ typedef struct year {
 
 typedef struct transaction {
     char str[CR_DR]; // cr/dr
-    year *year1, *year2;
+    year *year;
 }transaction;
 
 typedef struct root {
@@ -32,8 +32,13 @@ typedef struct root {
 
 typedef root* tree;
 
+// file function declarations
+void combineFile(int argc, char *argv[]);
+
 // function definitions:
-void init(tree *bank, int numberOfFiles, char *str);
+void init(tree *bank, int numberOfFiles, char **bankName);
+void print_statement(tree *bank, int numberOfFiles);
+
 tree balance_bank1();
 tree balance_bank2();
 tree total_credit_bank1();
