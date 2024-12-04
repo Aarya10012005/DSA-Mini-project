@@ -37,10 +37,10 @@ void init(tree *bank, int numberOfFiles, char **bankName) {
         //printf("%s\n", debit->str);
 
         // mallocing year node
-        credit->year = (year *)malloc(sizeof(year));
-        //strcpy(credit->year->year, "2023");
-        debit->year = (year *)malloc(sizeof(year));
-        //strcpy(debit->year->year, "2023");
+        credit->year = (YEAR *)malloc(sizeof(YEAR));
+        strcpy(credit->year->year, "2023"); // year is to be allocated according to the date
+        debit->year = (YEAR *)malloc(sizeof(YEAR));
+        strcpy(debit->year->year, "2023");  // year is to be allocated according to the date
 
         // mallocing quarter nodes
         credit->year->quarter1 = (quarter *)malloc(sizeof(quarter));
@@ -116,7 +116,7 @@ void init(tree *bank, int numberOfFiles, char **bankName) {
 void destroy(tree *bank, int numberOfFiles) {
     tree rootNode;
     transaction *credit, *debit;
-    year *credit_year, *debit_year;
+    YEAR *credit_year, *debit_year;
     quarter *cr_y_q1, *cr_y_q2, *cr_y_q3, *cr_y_q4, *dr_y_q1, *dr_y_q2, *dr_y_q3, *dr_y_q4;
     amount *amounts, *prevAmt;
     for(int i = 0; i < numberOfFiles; i++) {
@@ -372,7 +372,7 @@ void combineFile(int argc, char *argv[]){
 //     fclose(fp);
 // }
 
-void print_statement(tree *bank, int numberOfFiles) {
+void fill_data_structure(tree *bank, int numberOfFiles) {
     char *fileName = "./bank_statements/collective.csv";
     char line[BUFFER];
     char *token;
@@ -388,7 +388,7 @@ void print_statement(tree *bank, int numberOfFiles) {
 
     while (fgets(line, BUFFER, fp) != NULL) {
         tree rootNode = NULL;
-        int quarter = 0;
+        int qtr = 0;
         char year[5]; // Store year as a string (4 chars + null terminator)
 
         // Get bank name
@@ -406,7 +406,7 @@ void print_statement(tree *bank, int numberOfFiles) {
         }
 
         // Print bank name
-        printf("%s,", rootNode->bankName);
+        //printf("%s,", rootNode->bankName);
 
         // Skip SRN
         token = strtok(NULL, ",");
@@ -425,13 +425,13 @@ void print_statement(tree *bank, int numberOfFiles) {
 
             // Determine quarter based on month
             if (month_num >= 1 && month_num <= 3) {
-                quarter = 1;
+                qtr = 1;
             } else if (month_num >= 4 && month_num <= 6) {
-                quarter = 2;
+                qtr = 2;
             } else if (month_num >= 7 && month_num <= 9) {
-                quarter = 3;
+                qtr = 3;
             } else if (month_num >= 10 && month_num <= 12) {
-                quarter = 4;
+                qtr = 4;
             }
         }
 
@@ -439,33 +439,201 @@ void print_statement(tree *bank, int numberOfFiles) {
         token = strtok(NULL, ",");
         token = strtok(NULL, ",");
 
+        quarter *q = NULL;
         // Determine credit or debit
         token = strtok(NULL, ","); // CR/DR
         if (strcmp(token, "CR") == 0) {
-            printf("%s,%s,", rootNode->credit->str, year);
-            if (quarter == 1) {
-                printf("%s,AMOUNT\n", rootNode->credit->year->quarter1->quarter);
-            } else if (quarter == 2) {
-                printf("%s,AMOUNT\n", rootNode->credit->year->quarter2->quarter);
-            } else if (quarter == 3) {
-                printf("%s,AMOUNT\n", rootNode->credit->year->quarter3->quarter);
+            //printf("%s,%s,", rootNode->credit->str, year);
+            if (qtr == 1) {
+                //printf("%s,", rootNode->credit->year->quarter1->quarter);
+                q = rootNode->credit->year->quarter1;
+            } else if (qtr == 2) {
+                //printf("%s,", rootNode->credit->year->quarter2->quarter);
+                q = rootNode->credit->year->quarter2;
+            } else if (qtr == 3) {
+                //printf("%s,", rootNode->credit->year->quarter3->quarter);
+                q = rootNode->credit->year->quarter3;
             } else {
-                printf("%s,AMOUNT\n", rootNode->credit->year->quarter4->quarter);
+                //printf("%s,", rootNode->credit->year->quarter4->quarter);
+                q = rootNode->credit->year->quarter4;
             }
         } else if (strcmp(token, "DR") == 0) {
-            printf("%s,%s,", rootNode->debit->str, year);
-            if (quarter == 1) {
-                printf("%s,AMOUNT\n", rootNode->debit->year->quarter1->quarter);
-            } else if (quarter == 2) {
-                printf("%s,AMOUNT\n", rootNode->debit->year->quarter2->quarter);
-            } else if (quarter == 3) {
-                printf("%s,AMOUNT\n", rootNode->debit->year->quarter3->quarter);
+            //printf("%s,%s,", rootNode->debit->str, year);
+            if (qtr == 1) {
+                //printf("%s,", rootNode->debit->year->quarter1->quarter);
+                q = rootNode->debit->year->quarter1;
+            } else if (qtr == 2) {
+                //printf("%s,", rootNode->debit->year->quarter2->quarter);
+                q = rootNode->debit->year->quarter2;
+            } else if (qtr == 3) {
+                //printf("%s,", rootNode->debit->year->quarter3->quarter);
+                q = rootNode->debit->year->quarter3;
             } else {
-                printf("%s,AMOUNT\n", rootNode->debit->year->quarter4->quarter);
+                //printf("%s,", rootNode->debit->year->quarter4->quarter);
+                q = rootNode->debit->year->quarter4;
             }
         }
+
+        // skip currency
+        token = strtok(NULL, ",");
+
+        // amount
+        token = strtok(NULL, ",");
+        int amt = atoi(token);
+        insert(q, amt);
+        //printf("%d\n", q->amounts->amount);
+
+        // skip balance
+        token = strtok(NULL, ",");
     }
 
     fclose(fp);
 }
 
+// void fill_data_structure(tree *bank, int numberOfFiles) {
+//     char *fileName = "./bank_statements/collective.csv";
+//     char line[BUFFER];
+//     char *token;
+
+//     FILE *fp = fopen(fileName, "r");
+//     if (fp == NULL) {
+//         fprintf(stderr, "Cannot open the collective file: %s\n", fileName);
+//         exit(EXIT_FAILURE);
+//     }
+
+//     // Skip the header line
+//     fgets(line, BUFFER, fp);
+
+//     while (fgets(line, BUFFER, fp) != NULL) {
+//         tree rootNode = NULL;
+//         int qtr = 0;
+//         char year[5];
+
+//         // Get bank name
+//         token = strtok(line, ",");
+//         if (token == NULL) continue; // Skip malformed lines
+
+//         for (int i = 0; i < numberOfFiles; i++) {
+//             if (strcmp(token, (*bank)[i].bankName) == 0) {
+//                 rootNode = &((*bank)[i]);
+//                 break;
+//             }
+//         }
+
+//         if (rootNode == NULL) {
+//             fprintf(stderr, "Bank name not found: %s\n", token);
+//             continue;
+//         }
+
+//         // Extract transaction date
+//         token = strtok(NULL, ","); // txn_date
+//         if (token != NULL && strlen(token) >= 10) {
+//             strncpy(year, token + 6, 4); // Extract year
+//             year[4] = '\0';
+//             char month[3];
+//             strncpy(month, token + 3, 2); // Extract month
+//             month[2] = '\0';
+//             int month_num = atoi(month);
+//             if (month_num >= 1 && month_num <= 3) qtr = 1;
+//             else if (month_num >= 4 && month_num <= 6) qtr = 2;
+//             else if (month_num >= 7 && month_num <= 9) qtr = 3;
+//             else qtr = 4;
+//         }
+
+//         // Skip value date and description
+//         token = strtok(NULL, ",");
+//         token = strtok(NULL, ",");
+
+//         // Determine credit or debit
+//         quarter *q = NULL;
+//         token = strtok(NULL, ",");
+//         if (strcmp(token, "CR") == 0) q = (qtr == 1) ? rootNode->credit->year->quarter1 : 
+//                                 (qtr == 2) ? rootNode->credit->year->quarter2 : 
+//                                 (qtr == 3) ? rootNode->credit->year->quarter3 : rootNode->credit->year->quarter4;
+//         else if (strcmp(token, "DR") == 0) q = (qtr == 1) ? rootNode->debit->year->quarter1 : 
+//                                    (qtr == 2) ? rootNode->debit->year->quarter2 : 
+//                                    (qtr == 3) ? rootNode->debit->year->quarter3 : rootNode->debit->year->quarter4;
+
+//         if (q == NULL) {
+//             fprintf(stderr, "Quarter pointer is NULL.\n");
+//             continue;
+//         }
+
+//         // Process amount
+//         token = strtok(NULL, ",");
+//         int amt = atoi(token);
+//         insert(q, amt);
+//     }
+
+//     fclose(fp);
+// }
+
+
+void print_data_structure(tree *bank, int numberOfFiles) {
+    for(int i = 0; i < numberOfFiles; i++) {
+        tree rootNode = &((*bank)[i]);
+        printf("%s,", rootNode->bankName);
+
+        transaction *credit = rootNode->credit, *debit = rootNode->debit;
+
+        /* CREDIT */
+        printf("%s,", credit->str);
+        YEAR *yc = credit->year;
+        printf("%s\n", yc->year);
+
+        quarter *q1c = yc->quarter1, *q2c = yc->quarter2, *q3c = yc->quarter3, *q4c = yc->quarter4;
+        amount *a1c = q1c->amounts, *a2c = q2c->amounts, *a3c = q3c->amounts, *a4c = q4c->amounts;
+
+        printf("%s:\n", q1c->quarter);
+        while(a1c) {
+            printf("%d ", a1c->amount);
+            a1c = a1c->next;
+        }
+        printf("\n%s:\n", q2c->quarter);
+        while(a2c) {
+            printf("%d ", a2c->amount);
+            a2c = a2c->next;
+        }
+        printf("\n%s:\n", q3c->quarter);
+        while(a3c) {
+            printf("%d ", a3c->amount);
+            a3c = a3c->next;
+        }
+        printf("\n%s:\n", q4c->quarter);
+        while(a4c) {
+            printf("%d ", a4c->amount);
+            a4c = a4c->next;
+        }
+        printf("\n");
+
+        /* DEBIT */
+        printf("%s,", debit->str);
+        YEAR *yd = debit->year;
+        printf("%s\n", yd->year);
+
+        quarter *q1d = yd->quarter1, *q2d = yd->quarter2, *q3d = yd->quarter3, *q4d = yd->quarter4;
+        amount *a1d = q1d->amounts, *a2d = q2d->amounts, *a3d = q3d->amounts, *a4d = q4d->amounts;
+
+        printf("%s:\n", q1d->quarter);
+        while(a1d) {
+            printf("%d ", a1d->amount);
+            a1d = a1d->next;
+        }
+        printf("\n%s:\n", q2d->quarter);
+        while(a2d) {
+            printf("%d ", a2d->amount);
+            a2d = a2d->next;
+        }
+        printf("\n%s:\n", q3d->quarter);
+        while(a3d) {
+            printf("%d ", a3d->amount);
+            a3d = a3d->next;
+        }
+        printf("\n%s:\n", q4d->quarter);
+        while(a4d) {
+            printf("%d ", a4d->amount);
+            a4d = a4d->next;
+        }
+        printf("\n");
+    }
+}

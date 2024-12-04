@@ -3,7 +3,7 @@
 #define QUARTER 16
 
 typedef struct amount {
-    int srno;
+    //int srno;
     // char bankName[BANK_NAME];
     int amount;
     struct amount *next;
@@ -14,15 +14,15 @@ typedef struct quarter {
     amount *amounts;
 }quarter;
 
-typedef struct year {
-    char year[4];
+typedef struct YEAR {
+    char year[5];
     quarter *quarter1, *quarter2, *quarter3, *quarter4;
     // amount *jan, *feb, *march, *april, *may, *june, *july, *aug, *sept, *oct, *nov, *dec;
-}year;
+}YEAR;
 
 typedef struct transaction {
     char str[CR_DR]; // cr/dr
-    year *year;
+    YEAR *year;
 }transaction;
 
 typedef struct root {
@@ -37,7 +37,8 @@ void combineFile(int argc, char *argv[]);
 
 // function definitions:
 void init(tree *bank, int numberOfFiles, char **bankName);
-void print_statement(tree *bank, int numberOfFiles);
+void fill_data_structure(tree *bank, int numberOfFiles);
+void print_data_structure(tree *bank, int numberOfFiles);
 
 tree balance_bank1();
 tree balance_bank2();
@@ -47,3 +48,7 @@ tree total_debit_bank1();
 tree total_debit_bank2();
 void sort(); // on basis of amount/date/month
 void destroy(tree *bank, int numberOfFiles);
+
+// list functions
+void insert(quarter *q, int data);
+amount *createNode(int data);

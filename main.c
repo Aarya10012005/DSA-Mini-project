@@ -23,8 +23,11 @@ int main(int argc, char *argv[]) {
     // combining files
     combineFile(argc, argv);
 
-    // printing necessary data
-    print_statement(&banks, numberOfFiles);
+    // filling the data structure
+    fill_data_structure(&banks, numberOfFiles);
+
+    // printing the data structure
+    print_data_structure(&banks, numberOfFiles);
 
     // destroying
     destroy(&banks, numberOfFiles);
