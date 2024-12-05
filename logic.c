@@ -465,68 +465,68 @@ void print_data_structure(tree *bank, int numberOfFiles) {
 }
 
 int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart) {
-        int avg_sum = 0;
-        int count_txn = 0;
+    int avg_sum = 0;
+    int count_txn = 0;
 
-        for (int i = 0; i < numberOfFiles; i++) {
-            tree rootnode = &((*banks)[i]);
-            amount *a_i = NULL;
-            if (Quart == 1) {
-                a_i = rootnode->debit->year->qArr[0]->amounts;
-            } else if (Quart == 2) {
-                a_i = rootnode->debit->year->qArr[1]->amounts;
-            } else if (Quart == 3) {
-                a_i = rootnode->debit->year->qArr[2]->amounts;
-            } else if (Quart == 4) {
-                a_i = rootnode->debit->year->qArr[3]->amounts;
-            }
-
-            while (a_i) {
-                count_txn++;
-                avg_sum += a_i->amount;
-                a_i = a_i->next;
-            }
+    for (int i = 0; i < numberOfFiles; i++) {
+        tree rootnode = &((*banks)[i]);
+        amount *a_i = NULL;
+        if (Quart == 1) {
+            a_i = rootnode->debit->year->qArr[0]->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->debit->year->qArr[1]->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->debit->year->qArr[2]->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->debit->year->qArr[3]->amounts;
         }
 
-        if (count_txn == 0) {
-            return 0; // Avoid division by zero
+        while (a_i) {
+            count_txn++;
+            avg_sum += a_i->amount;
+            a_i = a_i->next;
         }
-
-        int avg_deb = avg_sum / count_txn;
-        return avg_deb;
     }
+
+    if (count_txn == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    int avg_deb = avg_sum / count_txn;
+    return avg_deb;
+}
 
 int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart) {
-        int avg_sum = 0;
-        int count_txn = 0;
+    int avg_sum = 0;
+    int count_txn = 0;
 
-        for (int i = 0; i < numberOfFiles; i++) {
-            tree rootnode = &((*banks)[i]);
-            amount *a_i = NULL;
-            if (Quart == 1) {
-                a_i = rootnode->credit->year->qArr[0]->amounts;
-            } else if (Quart == 2) {
-                a_i = rootnode->credit->year->qArr[1]->amounts;
-            } else if (Quart == 3) {
-                a_i = rootnode->credit->year->qArr[2]->amounts;
-            } else if (Quart == 4) {
-                a_i = rootnode->credit->year->qArr[3]->amounts;
-            }
-
-            while (a_i) {
-                count_txn++;
-                avg_sum += a_i->amount;
-                a_i = a_i->next;
-            }
+    for (int i = 0; i < numberOfFiles; i++) {
+        tree rootnode = &((*banks)[i]);
+        amount *a_i = NULL;
+        if (Quart == 1) {
+            a_i = rootnode->credit->year->qArr[0]->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->credit->year->qArr[1]->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->credit->year->qArr[2]->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->credit->year->qArr[3]->amounts;
         }
 
-        if (count_txn == 0) {
-            return 0; // Avoid division by zero
+        while (a_i) {
+            count_txn++;
+            avg_sum += a_i->amount;
+            a_i = a_i->next;
         }
-
-        int avg_cred = avg_sum / count_txn;
-        return avg_cred;
     }
+
+    if (count_txn == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    int avg_cred = avg_sum / count_txn;
+    return avg_cred;
+}
 
 int txn_count_quart(tree *banks, int numberOfFiles, int Quart) {
     int count_txn = 0;
@@ -709,7 +709,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
         }
     }
 
-    // checking whether entered bank names are in the data structure or not
+    // checking whether entered bank names are in the data structure or not, and updating the frequency array
     for(int i = 0; i < numBanks; i++) {
         for(int j = 0; j < numberOfFiles; j++) {
             if(strcmp(root[j].bankName, bankNames[i]) == 0) {
@@ -736,6 +736,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
     int lowAmt = -1, highAmt = -1;
     printf("Is there any amount range? [Y/N] ");
     scanf("%s", range);
+    range[1] = '\0';
     range[0] = toupper(range[0]);
     if(range[0] == 'Y') {
         printf("Enter lower amount: ");
@@ -744,7 +745,18 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
         scanf("%d", &highAmt);
     }
 
-    // printing reqd data
+    // printing the header line
+    char tmp[BUFFER];
+    FILE *temp = fopen(fileNames[1], "r");
+    if(temp == NULL) {
+        perror("File cannot open");
+        exit(EXIT_FAILURE);
+    }
+    fgets(tmp, BUFFER, temp);
+    printf("\n%s\n", tmp);
+    fclose(temp);
+
+    // printing required data
     for(int i = 0; i < numberOfFiles; i++) {
         if(freqBanks[i]) {
             tree rootNode = &((*bank)[i]);
@@ -764,14 +776,13 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                         // print required statements from the file
                         if(strcmp(range, "Y") == 0) {
                             if(amtc->amount >= lowAmt && amtc->amount <= highAmt) {
-                                fp = fopen(fileNames[i], "r");
+                                fp = fopen(fileNames[i + 1], "r");
                                 if(fp == NULL) {
                                     perror("File cannot open");
                                     exit(EXIT_FAILURE);
                                 }
-                                // print header
+                                // skip header
                                 fgets(line, BUFFER, fp);
-                                printf("%s\n", line);
                                 // find amount statements
                                 while(fgets(line, BUFFER, fp)) {
                                     strcpy(buf, line);
@@ -784,14 +795,13 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                 fclose(fp);
                             }
                         } else {
-                            fp = fopen(fileNames[i], "r");
+                            fp = fopen(fileNames[i + 1], "r");
                             if(fp == NULL) {
                                 perror("File cannot open");
                                 exit(EXIT_FAILURE);
                             }
-                            // print header
+                            // skip header
                             fgets(line, BUFFER, fp);
-                            printf("%s\n", line);
                             // find amount statements
                             while(fgets(line, BUFFER, fp)) {
                                 strcpy(buf, line);
@@ -815,15 +825,11 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                     // print quarter name
                     //printf("%s:\n", qc->quarter);
                     amount *amtd = qd->amounts;
-                    // print header
-                    fgets(line, BUFFER, fp);
-                    printf("%s\n", line);
-                    fclose(fp);
                     while(amtd) {
                         // print required statements from the file
                         if(strcmp(range, "Y") == 0) {
                             if(amtd->amount >= lowAmt && amtd->amount <= highAmt) {
-                                fp = fopen(fileNames[i], "r");
+                                fp = fopen(fileNames[i + 1], "r");
                                 // skip header
                                 fgets(line, BUFFER, fp);
                                 // find amount statement
@@ -838,8 +844,14 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                 fclose(fp);
                             }
                         } else {
-                            fp = fopen(fileNames[i], "r");
+                            fp = fopen(fileNames[i + 1], "r");
+                            if(fp == NULL) {
+                                perror("File cannot open");
+                                exit(EXIT_FAILURE);
+                            }
+                            // skip header
                             fgets(line, BUFFER, fp);
+                            // find amount statements
                             while(fgets(line, BUFFER, fp)) {
                                 strcpy(buf, line);
                                 token = strtok(buf, ",");
@@ -863,181 +875,3 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
         free(bankNames[i]);
     free(bankNames);
 }
-
-// void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
-//     tree root = (*bank);
-//     int numBanks = 0, qFrom, qTo;
-//     char **bankNames, cr_dr[8];
-
-//     // Initialize frequency array for banks
-//     int *freqBanks = (int *)malloc(sizeof(int) * numberOfFiles);
-//     if (!freqBanks) {
-//         perror("Memory allocation failed for freqBanks");
-//         exit(EXIT_FAILURE);
-//     }
-//     for (int i = 0; i < numberOfFiles; i++)
-//         freqBanks[i] = 0;
-
-//     // Ask for number of banks
-//     while (numBanks < 1) {
-//         printf("Enter number of Banks: ");
-//         scanf(" %d", &numBanks);
-//         if (numBanks < 1)
-//             printf("Please enter a valid number of banks.\n");
-//     }
-
-//     // Allocate memory for bank names
-//     bankNames = (char **)malloc(sizeof(char *) * numBanks);
-//     if (!bankNames) {
-//         perror("Memory allocation failed for bankNames");
-//         free(freqBanks);
-//         exit(EXIT_FAILURE);
-//     }
-//     for (int i = 0; i < numBanks; i++) {
-//         bankNames[i] = (char *)malloc(sizeof(char) * BANK_NAME);
-//         if (!bankNames[i]) {
-//             perror("Memory allocation failed for a bank name");
-//             for (int j = 0; j < i; j++)
-//                 free(bankNames[j]);
-//             free(bankNames);
-//             free(freqBanks);
-//             exit(EXIT_FAILURE);
-//         }
-//         printf("Enter name of the bank %d: ", i + 1);
-//         scanf("%s", bankNames[i]);
-//         for (int j = 0; j < strlen(bankNames[i]); j++) {
-//             bankNames[i][j] = tolower(bankNames[i][j]);
-//         }
-//     }
-
-//     // Check if bank names exist
-//     for (int i = 0; i < numBanks; i++) {
-//         for (int j = 0; j < numberOfFiles; j++) {
-//             if (strcmp(root[j].bankName, bankNames[i]) == 0) {
-//                 freqBanks[j] = 1;
-//                 break;
-//             }
-//         }
-//     }
-
-//     // Ask for quarters
-//     printf("Enter FROM quarter: ");
-//     scanf("%d", &qFrom);
-//     printf("Enter TO quarter: ");
-//     scanf("%d", &qTo);
-
-//     // Validate quarter range
-//     if (qFrom < 1 || qFrom > NUM_QUARTERS || qTo < 1 || qTo > NUM_QUARTERS || qFrom > qTo) {
-//         fprintf(stderr, "Error: Invalid quarter range.\n");
-//         free(freqBanks);
-//         for (int i = 0; i < numBanks; i++)
-//             free(bankNames[i]);
-//         free(bankNames);
-//         exit(EXIT_FAILURE);
-//     }
-
-//     // Ask for credit/debit/both
-//     printf("Credit/debit/both? ");
-//     scanf("%s", cr_dr);
-//     cr_dr[1] = '\0';
-//     cr_dr[0] = tolower(cr_dr[0]);
-
-//     // Ask for amount range
-//     char range[4];
-//     int lowAmt = -1, highAmt = -1;
-//     printf("Is there any amount range? [Y/N] ");
-//     scanf("%s", range);
-//     range[0] = toupper(range[0]);
-//     if (range[0] == 'Y') {
-//         printf("Enter lower amount: ");
-//         scanf("%d", &lowAmt);
-//         printf("Enter higher amount: ");
-//         scanf("%d", &highAmt);
-//     }
-
-//     // Process transactions
-//     for (int i = 0; i < numberOfFiles; i++) {
-//         if (freqBanks[i]) {
-//             tree rootNode = &((*bank)[i]);
-//             if (!rootNode) {
-//                 fprintf(stderr, "Error: rootNode is NULL for bank %d\n", i);
-//                 continue;
-//             }
-//             FILE *fp = fopen(fileNames[i], "r");
-//             if (!fp) {
-//                 perror("File cannot open");
-//                 continue;
-//             }
-
-//             char line[BUFFER], buf[BUFFER], *token;
-
-//             // Process credit transactions
-//             if (cr_dr[0] == 'c' || cr_dr[0] == 'b') {
-//                 transaction *cr = rootNode->credit;
-//                 YEAR *yc = cr->year;
-//                 for (int j = qFrom; j <= qTo; j++) {
-//                     quarter *qc = yc->qArr[j - 1];
-//                     if (!qc) continue;
-
-//                     amount *amtc = qc->amounts;
-//                     while (amtc) {
-//                         if (range[0] == 'Y' && (amtc->amount < lowAmt || amtc->amount > highAmt)) {
-//                             amtc = amtc->next;
-//                             continue;
-//                         }
-
-//                         fseek(fp, 0, SEEK_SET); // Reset to the start of the file
-//                         fgets(line, BUFFER, fp); // Skip header
-//                         while (fgets(line, BUFFER, fp)) {
-//                             strcpy(buf, line);
-//                             token = strtok(buf, ",");
-//                             if (token && strcmp(token, amtc->srno) == 0) {
-//                                 printf("%s", line);
-//                                 break;
-//                             }
-//                         }
-//                         amtc = amtc->next;
-//                     }
-//                 }
-//             }
-
-//             // Process debit transactions
-//             if (cr_dr[0] == 'd' || cr_dr[0] == 'b') {
-//                 transaction *dr = rootNode->debit;
-//                 YEAR *yd = dr->year;
-//                 for (int j = qFrom; j <= qTo; j++) {
-//                     quarter *qd = yd->qArr[j - 1];
-//                     if (!qd) continue;
-
-//                     amount *amtd = qd->amounts;
-//                     while (amtd) {
-//                         if (range[0] == 'Y' && (amtd->amount < lowAmt || amtd->amount > highAmt)) {
-//                             amtd = amtd->next;
-//                             continue;
-//                         }
-
-//                         fseek(fp, 0, SEEK_SET); // Reset to the start of the file
-//                         fgets(line, BUFFER, fp); // Skip header
-//                         while (fgets(line, BUFFER, fp)) {
-//                             strcpy(buf, line);
-//                             token = strtok(buf, ",");
-//                             if (token && strcmp(token, amtd->srno) == 0) {
-//                                 printf("%s", line);
-//                                 break;
-//                             }
-//                         }
-//                         amtd = amtd->next;
-//                     }
-//                 }
-//             }
-
-//             fclose(fp);
-//         }
-//     }
-
-//     // Free allocated memory
-//     free(freqBanks);
-//     for (int i = 0; i < numBanks; i++)
-//         free(bankNames[i]);
-//     free(bankNames);
-// }
