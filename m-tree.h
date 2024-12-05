@@ -49,6 +49,11 @@ tree total_debit_bank2();
 void sort(); // on basis of amount/date/month
 void destroy(tree *bank, int numberOfFiles);
 
+int txn_count_quart(tree *banks, int numberOfFiles, int Quart);
+int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart);
+int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart);
+
+
 // list functions
 void insert(quarter *q, int data);
 amount *createNode(int data);

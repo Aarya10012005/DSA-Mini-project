@@ -26,9 +26,17 @@ int main(int argc, char *argv[]) {
     // filling the data structure
     fill_data_structure(&banks, numberOfFiles);
 
+    
+
     // printing the data structure
     print_data_structure(&banks, numberOfFiles);
 
+    for (int q = 1; q <= 4; q++) {
+        printf("Quarter %d:\n", q);
+        printf("Transaction Count: %d\n", txn_count_quart(&banks, numberOfFiles, q));
+        printf("Average Quarterly Debit: %d\n", avg_quarterly_deb(&banks, numberOfFiles, q));
+        printf("Average Quarterly Credit: %d\n", avg_quarterly_cred(&banks, numberOfFiles, q));
+    }
     // destroying
     destroy(&banks, numberOfFiles);
     return 0;

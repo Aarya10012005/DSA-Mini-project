@@ -1,4 +1,5 @@
 #include "m-tree.h"
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -637,3 +638,136 @@ void print_data_structure(tree *bank, int numberOfFiles) {
         printf("\n");
     }
 }
+
+// passing the rootest node, argc, and the quarter
+int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart) {
+    int avg_sum = 0;
+    int count_txn = 0;
+
+    for (int i = 0; i < numberOfFiles; i++) {
+        tree rootnode = &((*banks)[i]);
+        amount *a_i = NULL;
+        if (Quart == 1) {
+            a_i = rootnode->debit->year->quarter1->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->debit->year->quarter2->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->debit->year->quarter3->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->debit->year->quarter4->amounts;
+        }
+
+        while (a_i) {
+            count_txn++;
+            avg_sum += a_i->amount;
+            a_i = a_i->next;
+        }
+    }
+
+    if (count_txn == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    int avg_deb = avg_sum / count_txn;
+    return avg_deb;
+}
+
+int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart) {
+    int avg_sum = 0;
+    int count_txn = 0;
+
+    for (int i = 0; i < numberOfFiles; i++) {
+        tree rootnode = &((*banks)[i]);
+        amount *a_i = NULL;
+        if (Quart == 1) {
+            a_i = rootnode->credit->year->quarter1->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->credit->year->quarter2->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->credit->year->quarter3->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->credit->year->quarter4->amounts;
+        }
+
+        while (a_i) {
+            count_txn++;
+            avg_sum += a_i->amount;
+            a_i = a_i->next;
+        }
+    }
+
+    if (count_txn == 0) {
+        return 0; // Avoid division by zero
+    }
+
+    int avg_cred = avg_sum / count_txn;
+    return avg_cred;
+}
+
+int txn_count_quart(tree *banks, int numberOfFiles, int Quart) {
+    int count_txn = 0;
+    for (int i = 0; i < numberOfFiles; i++) {
+        tree rootnode = &((*banks)[i]);
+
+        amount *a_i = NULL;
+        if (Quart == 1) {
+            a_i = rootnode->credit->year->quarter1->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->credit->year->quarter2->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->credit->year->quarter3->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->credit->year->quarter4->amounts;
+        }
+
+        while (a_i) {
+            count_txn++;
+            a_i = a_i->next;
+        }
+
+        if (Quart == 1) {
+            a_i = rootnode->debit->year->quarter1->amounts;
+        } else if (Quart == 2) {
+            a_i = rootnode->debit->year->quarter2->amounts;
+        } else if (Quart == 3) {
+            a_i = rootnode->debit->year->quarter3->amounts;
+        } else if (Quart == 4) {
+            a_i = rootnode->debit->year->quarter4->amounts;
+        }
+
+        while (a_i) {
+            count_txn++;
+            a_i = a_i->next;
+        }
+    }
+
+    return count_txn;
+}
+
+// stores minimum txn cred and deb details
+// char  **minTxn(tree *banks, int argc){
+//     //minimum amount debited  : xxxx 
+//     //minimum amount credited : xxxx
+//     int min_cred = INT_MAX;
+//     int bankCount = argc - 1;
+//     for(int i = 0; i < bankCount; i++){
+
+//     }
+
+
+// }
+
+// //stores maximum txn cred and deb details
+// char  **maxTxn(){
+//     //Bank Name,Srl,Txn Date,Value Date,Description,CR/DR,CCY,Amount (INR),Balance (INR)
+//     char max_deb[BUFFER];
+//     char max_cred[BUFFER];
+
+//     char maxCrBank[BANK_NAME];
+//     char maxDrBank[BANK_NAME];
+
+
+// }
+
+
+
