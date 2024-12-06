@@ -48,25 +48,25 @@ void init(tree *bank, int numberOfFiles, char **bankName) {
         strcpy(debit->year->year, "2023");  // year is to be allocated according to the date
 
         // mallocing quarter nodes
-	for(int i = 0; i < 4; i++){
-	        credit->year->qArr[i] = (quarter *)malloc(sizeof(quarter));
-	        credit->year->qArr[i]->amounts = NULL;
-	        credit->year->qArr[i]->balance = 0;
-		char temp1[10];
-		strcpy(temp, "Quarter ");
-		temp[8] = i + '1'; 
-		temp[9] = '\0';    
-	        strcpy(credit->year->qArr[i]->quarter, temp);		
+        for(int i = 0; i < 4; i++){
+            credit->year->qArr[i] = (quarter *)malloc(sizeof(quarter));
+            credit->year->qArr[i]->amounts = NULL;
+            credit->year->qArr[i]->balance = 0;
+            char temp1[10];
+            strcpy(temp1, "Quarter ");
+            temp1[8] = i + '1'; 
+            temp1[9] = '\0';    
+            strcpy(credit->year->qArr[i]->quarter, temp1);		
 
-		debit->year->qArr[i] = (quarter *)malloc(sizeof(quarter));
-	        debit->year->qArr[i]->amounts = NULL;
-	        debit->year->qArr[i]->balance = 0;
-		char temp2[10];
-		strcpy(temp, "Quarter ");
-		temp[8] = i + '1'; 
-		temp[9] = '\0';    
-	        strcpy(debit->year->qArr[i]->quarter, temp);
-	}
+            debit->year->qArr[i] = (quarter *)malloc(sizeof(quarter));
+            debit->year->qArr[i]->amounts = NULL;
+            debit->year->qArr[i]->balance = 0;
+            char temp2[10];
+            strcpy(temp2, "Quarter ");
+            temp2[8] = i + '1'; 
+            temp2[9] = '\0';    
+            strcpy(debit->year->qArr[i]->quarter, temp2);
+        }
     }
     return;
 }
