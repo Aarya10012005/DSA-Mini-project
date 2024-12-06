@@ -438,27 +438,16 @@ int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart) {
     for (int i = 0; i < numberOfFiles; i++) {
         tree rootnode = &((*banks)[i]);
         amount *a_i = NULL;
-        if (Quart == 1) {
-            a_i = rootnode->debit->year->qArr[0]->amounts;
-        } else if (Quart == 2) {
-            a_i = rootnode->debit->year->qArr[1]->amounts;
-        } else if (Quart == 3) {
-            a_i = rootnode->debit->year->qArr[2]->amounts;
-        } else if (Quart == 4) {
-            a_i = rootnode->debit->year->qArr[3]->amounts;
-        }
-
+        a_i = rootnode->debit->year->qArr[Quart - 1]->amounts;
         while (a_i) {
             count_txn++;
             avg_sum += a_i->amount;
             a_i = a_i->next;
         }
     }
-
     if (count_txn == 0) {
         return 0; // Avoid division by zero
     }
-
     int avg_deb = avg_sum / count_txn;
     return avg_deb;
 }
@@ -470,16 +459,7 @@ int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart) {
     for (int i = 0; i < numberOfFiles; i++) {
         tree rootnode = &((*banks)[i]);
         amount *a_i = NULL;
-        if (Quart == 1) {
-            a_i = rootnode->credit->year->qArr[0]->amounts;
-        } else if (Quart == 2) {
-            a_i = rootnode->credit->year->qArr[1]->amounts;
-        } else if (Quart == 3) {
-            a_i = rootnode->credit->year->qArr[2]->amounts;
-        } else if (Quart == 4) {
-            a_i = rootnode->credit->year->qArr[3]->amounts;
-        }
-
+        a_i = rootnode->credit->year->qArr[Quart - 1]->amounts;
         while (a_i) {
             count_txn++;
             avg_sum += a_i->amount;
