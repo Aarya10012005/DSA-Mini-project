@@ -1,6 +1,4 @@
 #include "m-tree.h"
-#include <sys/stat.h>  // For mkdir
-#include <sys/types.h> 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -171,35 +169,23 @@ void destroy(tree *bank, int numberOfFiles) {
         }
 
         // freeing quarter nodes
-        //if(cr_y_q1)
-            free(cr_y_q1);
-        //if(cr_y_q2)
-            free(cr_y_q2);
-        //if(cr_y_q3)
-            free(cr_y_q3);
-        //if(cr_y_q4)
-            free(cr_y_q4);
+        free(cr_y_q1);
+        free(cr_y_q2);
+        free(cr_y_q3);
+        free(cr_y_q4);
 
-        //if(dr_y_q1)
-            free(dr_y_q1);
-        //if(dr_y_q2)
-            free(dr_y_q2);
-        //if(dr_y_q3)
-            free(dr_y_q3);
-        //if(dr_y_q4)
-            free(dr_y_q4);
+        free(dr_y_q1);
+        free(dr_y_q2);
+        free(dr_y_q3);
+        free(dr_y_q4);
 
         // freeing year nodes
-        //if(credit_year)
-            free(credit_year);
-        //if(debit_year)
-            free(debit_year);
+        free(credit_year);
+        free(debit_year);
 
         // freeing cr/dr (transaction) nodes
-        //if(credit)
-            free(credit);
-        //if(debit)
-            free(debit);
+        free(credit);
+        free(debit);
     }
     // freeing the malloced memory of root nodes
     free((*bank));
