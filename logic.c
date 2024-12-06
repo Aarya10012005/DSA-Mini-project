@@ -357,20 +357,20 @@ void fill_data_structure(tree *bank, int numberOfFiles) {
             }
         }
 
-        // skip currency
+        // Skip currency
         token = strtok(NULL, ",");
 
-        // amount
+        // Amount
         token = strtok(NULL, ",");
         int amt = atoi(token);
         insert(q, amt, srn);
         //printf("%d\n", q->amounts->amount);
 
-        // skip balance
+        // Skip balance
         token = strtok(NULL, ",");
     }
 
-    // storing total credited amount and total debited amount
+    // Storing total credited amount and total debited amount
     for(int i = 0; i < numberOfFiles; i++) {
         tree rootNode = &((*bank)[i]);
         for(int j = 0; j < 4; j++) {
@@ -379,7 +379,7 @@ void fill_data_structure(tree *bank, int numberOfFiles) {
         }
     }
 
-    // closing the file
+    // Closing the file
     fclose(fp);
 }
 
