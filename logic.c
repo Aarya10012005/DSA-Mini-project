@@ -607,77 +607,266 @@ void generate_txn_count_graph(tree *banks, int numberOfFiles) {
     _pclose(gp);
 }
 
-// void plot txn
-
-// stores minimum txn cred and deb details
-void minTxn(tree *banks, int numberOfFiles) {
+int *minTxn(tree *banks, int numberOfFiles, char *argv[]) {
     int min_cred = INT_MAX;
     int min_deb = INT_MAX;
-    for (int i = 0; i < numberOfFiles; i++) {
-        root *rootnode = *banks + i;
-        amount *min_cred_ptr = NULL;
-        amount *min_deb_ptr = NULL;
 
-        for(int i = 1; i <= 4; i++) {
-            min_cred_ptr = rootnode->credit->year->qArr[i - 1]->amounts;
-            while (min_cred_ptr) {
-                if (min_cred < min_cred_ptr->amount) {
-                    min_cred = min_cred_ptr->amount;
-                }
-                min_cred_ptr = min_cred_ptr->next;
-            }
-        }
+    char min_cred_srl[10] = "";
+    char min_deb_srl[10] = "";
 
-        for(int i = 1; i <= 4; i++) {
-            min_deb_ptr = rootnode->credit->year->qArr[i - 1]->amounts;
-            while (min_deb_ptr) {
-                if (min_deb < min_deb_ptr->amount) {
-                    min_deb = min_deb_ptr->amount;
-                }
-                min_deb_ptr = min_deb_ptr->next;
-            }
-        }
-    
+    char min_cred_bank[BANK_NAME] = "";
+    char min_deb_bank[BANK_NAME] = "";
+
+    char min_cred_line[BUFFER] = "";
+    char min_deb_line[BUFFER] = "";
+
+    int *min_store = (int *)malloc(sizeof(int) * 2);
+    if (!min_store) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
     }
 
-    if (min_cred == INT_MAX) min_cred = 0;
-    if (min_deb == INT_MAX) min_deb = 0;
+    // Find minimum credit and debit transactions
+    for (int i = 0; i < numberOfFiles; i++) {
+        root *rootnode = *banks + i;
 
-    printf("Minimum amount debited is: %d\n", min_deb);
-    printf("Minimum amount credited is: %d\n", min_cred);
+        // Traverse all credit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->credit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount < min_cred) {
+                    min_cred = ptr->amount;
+                    strncpy(min_cred_srl, ptr->srno, sizeof(min_cred_srl) - 1);
+                    min_cred_srl[sizeof(min_cred_srl) - 1] = '\0';
+                    strncpy(min_cred_bank, rootnode->bankName, sizeof(min_cred_bank) - 1);
+                    min_cred_bank[sizeof(min_cred_bank) - 1] = '\0';
+                }
+                ptr = ptr->next;
+            }
+        }
+
+        // Traverse all debit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->debit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount < min_deb) {
+                    min_deb = ptr->amount;
+                    strncpy(min_deb_srl, ptr->srno, sizeof(min_deb_srl) - 1);
+                    min_deb_srl[sizeof(min_deb_srl) - 1] = '\0';
+                    strncpy(min_deb_bank, rootnode->bankName, sizeof(min_deb_bank) - 1);
+                    min_deb_bank[sizeof(min_deb_bank) - 1] = '\0';
+                }
+                ptr = ptr->next;
+            }
+        }
+    }
+    // Find the minimum credit line
+    char *token = NULL;
+    char temp_bank_name[BANK_NAME];
+    int flag = 0;
+
+    for (int i = 0; i < numberOfFiles; i++) {
+        strcpy(temp_bank_name, argv[i + 1]);
+        token = strtok(temp_bank_name, "/");  // Extract bank name from the filename
+        token = strtok(NULL, "/");
+        token = strtok(NULL, ".");
+
+        if (strncmp(min_cred_bank, token, 10) == 0) {
+            FILE *fp = fopen(argv[i + 1], "r");
+            if (!fp) {
+                perror("Could not open file for finding min transaction credit");
+                exit(EXIT_FAILURE);
+            }
+            fgets(min_cred_line, BUFFER, fp); // Skip the header line
+            while (fgets(min_cred_line, BUFFER, fp)) {
+                char temp_line[BUFFER];
+                strcpy(temp_line, min_cred_line); // Copy the line for tokenizing
+                char *line_token = strtok(temp_line, ","); // Extract serial number
+                if (strcmp(min_cred_srl, line_token) == 0) {
+                    printf("Minimum Transaction Line (Credit): %s\n", min_cred_line);
+                    fclose(fp);
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag) {
+                fclose(fp);
+                break;
+            }
+        }
+    }
+
+    // Reset flag for debit search
+    flag = 0;
+
+    // Find the minimum debit line
+    for (int i = 0; i < numberOfFiles; i++) {
+        strcpy(temp_bank_name, argv[i + 1]);
+        token = strtok(temp_bank_name, "/");  // Extract bank name from the filename
+        token = strtok(NULL, "/");
+        token = strtok(NULL, ".");
+
+        if (strncmp(min_deb_bank, token, 10) == 0) {
+            FILE *fp = fopen(argv[i + 1], "r");
+            if (!fp) {
+                perror("Could not open file for finding min transaction debit");
+                exit(EXIT_FAILURE);
+            }
+            fgets(min_deb_line, BUFFER, fp); // Skip the header line
+            while (fgets(min_deb_line, BUFFER, fp)) {
+                char temp_line[BUFFER];
+                strcpy(temp_line, min_deb_line); // Copy the line for tokenizing
+                char *line_token = strtok(temp_line, ","); // Extract serial number
+                if (strcmp(min_deb_srl, line_token) == 0) {
+                    printf("Minimum Transaction Line (Debit): %s\n", min_deb_line);
+                    fclose(fp);
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag) {
+                fclose(fp);
+                break;
+            }
+        }
+    }
+
+
+    min_store[0] = min_cred;
+    min_store[1] = min_deb;
+
+    return min_store;
 }
 
-void maxTxn(tree *banks, int numberOfFiles) {
-    int max_cred = 0;
-    int max_deb = 0;
+int *maxTxn(tree *banks, int numberOfFiles, char *argv[]) {
+    int max_cred = -1;
+    int max_deb = -1;
+
+    char max_cred_srl[10] = "";
+    char max_deb_srl[10] = "";
+
+    char max_cred_bank[BANKNAME] = "";
+    char max_deb_bank[BANKNAME] = "";
+
+    char max_cred_line[BUFFER] = "";
+    char max_deb_line[BUFFER] = "";
+
+    int *max_store = (int *)malloc(sizeof(int) * 2);
+    if (!max_store) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Find maximum credit and debit transactions
     for (int i = 0; i < numberOfFiles; i++) {
         root *rootnode = *banks + i;
-        amount *max_cred_ptr = NULL;
-        amount *max_deb_ptr = NULL;
 
-        // Check all quarters for credit transactions
-        for(int i = 1; i <= 4; i++) {
-            max_cred_ptr = rootnode->credit->year->qArr[i - 1]->amounts;
-            while (max_cred_ptr) {
-                if (max_cred < max_cred_ptr->amount) {
-                    max_cred = max_cred_ptr->amount;
+        // Traverse all credit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->credit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount > max_cred) {
+                    max_cred = ptr->amount;
+                    strncpy(max_cred_srl, ptr->srno, sizeof(max_cred_srl) - 1);
+                    max_cred_srl[sizeof(max_cred_srl) - 1] = '\0';
+                    strncpy(max_cred_bank, rootnode->bankName, sizeof(max_cred_bank) - 1);
+                    max_cred_bank[sizeof(max_cred_bank) - 1] = '\0';
                 }
-                max_cred_ptr = max_cred_ptr->next;
+                ptr = ptr->next;
             }
         }
 
-        for(int i = 1; i <= 4; i++) {
-            max_deb_ptr = rootnode->credit->year->qArr[i - 1]->amounts;
-            while (max_deb_ptr) {
-                if (max_cred < max_deb_ptr->amount) {
-                    max_cred = max_deb_ptr->amount;
+        // Traverse all debit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->debit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount > max_deb) {
+                    max_deb = ptr->amount;
+                    strncpy(max_deb_srl, ptr->srno, sizeof(max_deb_srl) - 1);
+                    max_deb_srl[sizeof(max_deb_srl) - 1] = '\0';
+                    strncpy(max_deb_bank, rootnode->bankName, sizeof(max_deb_bank) - 1);
+                    max_deb_bank[sizeof(max_deb_bank) - 1] = '\0';
                 }
-                max_deb_ptr = max_deb_ptr->next;
+                ptr = ptr->next;
             }
         }
     }
-    printf("Maximum amount debited is: %d\n", max_deb);
-    printf("Maximum amount credited is: %d\n", max_cred);
+    //find the transaction line with maximum credit
+    char *token = NULL;
+    char temp_bank_name[BANK_NAME];
+    int flag = 0;
+
+    // Find the maximum credit line
+    for (int i = 0; i < numberOfFiles; i++) {
+        strcpy(temp_bank_name, argv[i + 1]);
+        token = strtok(temp_bank_name, "/");  // Extract bank name from the filename
+        token = strtok(NULL, "/");
+        token = strtok(NULL, ".");
+
+        if (strncmp(max_cred_bank, token, 10) == 0) {
+            FILE *fp = fopen(argv[i + 1], "r");
+            if (!fp) {
+                perror("Could not open file for finding max transaction credit");
+                exit(EXIT_FAILURE);
+            }
+            fgets(max_cred_line, BUFFER, fp); // Skip the header line
+            while (fgets(max_cred_line, BUFFER, fp)) {
+                char temp_line[BUFFER];
+                strcpy(temp_line, max_cred_line); // Copy the line for tokenizing
+                char *line_token = strtok(temp_line, ","); // Extract serial number
+                if (strcmp(max_cred_srl, line_token) == 0) {
+                    printf("Maximum Transaction Line (Credit): %s\n", max_cred_line);
+                    fclose(fp);
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag) {
+                fclose(fp);
+                break;
+            }
+        }
+    }
+
+    // Reset flag for debit search
+    flag = 0;
+
+    // Find the maximum debit line
+    for (int i = 0; i < numberOfFiles; i++) {
+        strcpy(temp_bank_name, argv[i + 1]);
+        token = strtok(temp_bank_name, "/");  // Extract bank name from the filename
+        token = strtok(NULL, "/");
+        token = strtok(NULL, ".");
+
+        if (strncmp(max_deb_bank, token, 10) == 0) {
+            FILE *fp = fopen(argv[i + 1], "r");
+            if (!fp) {
+                perror("Could not open file for finding max transaction debit");
+                exit(EXIT_FAILURE);
+            }
+            fgets(max_deb_line, BUFFER, fp); // Skip the header line
+            while (fgets(max_deb_line, BUFFER, fp)) {
+                char temp_line[BUFFER];
+                strcpy(temp_line, max_deb_line); // Copy the line for tokenizing
+                char *line_token = strtok(temp_line, ","); // Extract serial number
+                if (strcmp(max_deb_srl, line_token) == 0) {
+                    printf("Maximum Transaction Line (Debit): %s\n", max_deb_line);
+                    fclose(fp);
+                    flag = 1;
+                    break;
+                }
+            }
+            if (flag) {
+                fclose(fp);
+                break;
+            }
+        }
+    }
+
+    max_store[0] = max_cred;
+    max_store[1] = max_deb;
+
+    return max_store;
 }
 
 void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
@@ -753,7 +942,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
         exit(EXIT_FAILURE);
     }
     fgets(tmp, BUFFER, temp);
-    printf("\n%s\n", tmp);
+    printf("\n%s", tmp);
     fclose(temp);
 
     // printing required data
@@ -788,7 +977,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                     strcpy(buf, line);
                                     token = strtok(buf, ",");
                                     if(strcmp(token, amtc->srno) == 0) {
-                                        printf("%s\n", line);
+                                        printf("%s", line);
                                         break;
                                     }
                                 }
@@ -807,7 +996,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                 strcpy(buf, line);
                                 token = strtok(buf, ",");
                                 if(strcmp(token, amtc->srno) == 0) {
-                                    printf("%s\n", line);
+                                    printf("%s", line);
                                     break;
                                 }
                             }
@@ -837,7 +1026,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                     strcpy(buf, line);
                                     token = strtok(buf, ",");
                                     if(strcmp(token, amtd->srno) == 0) {
-                                        printf("%s\n", line);
+                                        printf("%s", line);
                                         break;
                                     }
                                 }
@@ -856,7 +1045,7 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
                                 strcpy(buf, line);
                                 token = strtok(buf, ",");
                                 if(strcmp(token, amtd->srno) == 0) {
-                                    printf("%s\n", line);
+                                    printf("%s", line);
                                     break;
                                 }
                             }

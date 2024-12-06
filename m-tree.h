@@ -40,23 +40,14 @@ void combineFile(int argc, char *argv[]);
 void init(tree *bank, int numberOfFiles, char **bankName);
 void fill_data_structure(tree *bank, int numberOfFiles);
 void print_data_structure(tree *bank, int numberOfFiles);
-
-// tree balance_bank1();
-// tree balance_bank2();
-// tree total_credit_bank1();
-// tree total_credit_bank2();
-// tree total_debit_bank1();
-// tree total_debit_bank2();
-// void sort(); // on basis of amount/date/month
-void destroy(tree *bank, int numberOfFiles);
-
 int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart);
 int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart);
 int txn_count_quart(tree *banks, int numberOfFiles, int Quart);
 void generate_txn_count_graph(tree *banks, int numberOfFiles);
-void minTxn(tree *banks, int numberOfFiles);
-void maxTxn(tree *banks, int numberOfFiles);
+int *minTxn(tree *banks, int numberOfFiles, char *argv[]);
+int *maxTxn(tree *banks, int numberOfFiles, char *argv[]);
 void search_transactions(tree *bank, int numberOfFiles, char **fileNames);
+void destroy(tree *bank, int numberOfFiles);
 
 // list functions
 void insert(quarter *q, int data, char *srn);
