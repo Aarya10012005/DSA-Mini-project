@@ -1,7 +1,7 @@
 #define BANK_NAME 16
 #define CR_DR 4
 #define QUARTER 16
-
+#include <sys/stat.h>
 typedef struct amount {
     char srno[10];
     // char bankName[BANK_NAME];
@@ -42,12 +42,17 @@ void fill_data_structure(tree *bank, int numberOfFiles);
 void print_data_structure(tree *bank, int numberOfFiles);
 int avg_quarterly_deb(tree *banks, int numberOfFiles, int Quart);
 int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart);
+void plot_avg_credit_debit(tree *banks, int numberOfFiles);
 int txn_count_quart(tree *banks, int numberOfFiles, int Quart);
 void generate_txn_count_graph(tree *banks, int numberOfFiles);
 int *minTxn(tree *banks, int numberOfFiles, char *argv[]);
 int *maxTxn(tree *banks, int numberOfFiles, char *argv[]);
 void search_transactions(tree *bank, int numberOfFiles, char **fileNames);
 void destroy(tree *bank, int numberOfFiles);
+void summary(root **banks, int numberOfFiles, char *argv[]);
+int *minTxn_Summary(tree *banks, int numberOfFiles, char *argv[]);
+int *maxTxn_Summary(tree *banks, int numberOfFiles, char *argv[]);
+// void generate_double_histogram(int argc, char *argv[]);
 
 // list functions
 void insert(quarter *q, int data, char *srn);

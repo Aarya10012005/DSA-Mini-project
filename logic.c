@@ -1,4 +1,6 @@
 #include "m-tree.h"
+#include <sys/stat.h>  // For mkdir
+#include <sys/types.h> 
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +10,7 @@
 #define BUFFER 256
 #define BANKNAME 100
 #define NUM_QUARTERS 4
+#define ln printf("\n");
 
 void init(tree *bank, int numberOfFiles, char **bankName) {
     (*bank) = (tree)malloc(sizeof(root) * numberOfFiles);
@@ -528,6 +531,7 @@ int avg_quarterly_cred(tree *banks, int numberOfFiles, int Quart) {
     return avg_cred;
 }
 
+
 int txn_count_quart(tree *banks, int numberOfFiles, int Quart) {
     int count_txn = 0;
     for (int i = 0; i < numberOfFiles; i++) {
@@ -585,7 +589,9 @@ void generate_txn_count_graph(tree *banks, int numberOfFiles) {
         return;
     }
 
-    // Send Gnuplot commands
+    // Send Gnuplot commands to save the graph
+    fprintf(gp, "set terminal png size 800,600\n"); // Set the terminal to PNG with size
+    fprintf(gp, "set output './Graphs/transaction_counts.png'\n"); // Set the output file name
     fprintf(gp, "set title 'Transaction Counts Per Quarter'\n");
     fprintf(gp, "set xlabel 'Quarter'\n");
     fprintf(gp, "set ylabel 'Transaction Count'\n");
@@ -605,7 +611,53 @@ void generate_txn_count_graph(tree *banks, int numberOfFiles) {
 
     // Close the pipe
     _pclose(gp);
+
+    printf("Graph saved as 'transaction_counts.png'.\n");
 }
+
+void plot_avg_credit_debit(tree *banks, int numberOfFiles) {
+
+    int avg_debit[4] = {0};
+    int avg_credit[4] = {0};
+
+    for (int q = 1; q <= 4; q++) {
+        avg_debit[q - 1] = avg_quarterly_deb(banks, numberOfFiles, q);
+        avg_credit[q - 1] = avg_quarterly_cred(banks, numberOfFiles, q);
+    }
+
+    FILE *gp = _popen("gnuplot -persistent", "w");
+    if (!gp) {
+        printf("Error: Could not open Gnuplot.\n");
+        return;
+    }
+
+    fprintf(gp, "set terminal png size 800,600\n");
+    fprintf(gp, "set title 'Average Credit and Debit Per Quarter'\n");
+    fprintf(gp, "set xlabel 'Quarter'\n");
+    fprintf(gp, "set ylabel 'Average Amount'\n");
+    fprintf(gp, "set grid\n");
+    fprintf(gp, "set xtics 1\n");
+    fprintf(gp, "set key outside\n");
+    fprintf(gp, "set output './Graphs/avg_credit_debit.png'\n");
+
+    fprintf(gp, "plot '-' using 1:2 with linespoints title 'Average Debit', "
+                "'-' using 1:2 with linespoints title 'Average Credit'\n");
+
+    for (int i = 0; i < 4; i++) {
+        fprintf(gp, "%d %d\n", i + 1, avg_debit[i]);
+    }
+    fprintf(gp, "e\n");
+
+    for (int i = 0; i < 4; i++) {
+        fprintf(gp, "%d %d\n", i + 1, avg_credit[i]);
+    }
+    fprintf(gp, "e\n");
+
+    _pclose(gp);
+
+    printf("Graph saved as './Graphs/avg_credit_debit.png'\n");
+}
+
 
 int *minTxn(tree *banks, int numberOfFiles, char *argv[]) {
     int min_cred = INT_MAX;
@@ -683,7 +735,7 @@ int *minTxn(tree *banks, int numberOfFiles, char *argv[]) {
                 strcpy(temp_line, min_cred_line); // Copy the line for tokenizing
                 char *line_token = strtok(temp_line, ","); // Extract serial number
                 if (strcmp(min_cred_srl, line_token) == 0) {
-                    printf("Minimum Transaction Line (Credit): %s\n", min_cred_line);
+                    printf("Minimum Transaction (Credit): %s\n", min_cred_line);
                     fclose(fp);
                     flag = 1;
                     break;
@@ -718,7 +770,7 @@ int *minTxn(tree *banks, int numberOfFiles, char *argv[]) {
                 strcpy(temp_line, min_deb_line); // Copy the line for tokenizing
                 char *line_token = strtok(temp_line, ","); // Extract serial number
                 if (strcmp(min_deb_srl, line_token) == 0) {
-                    printf("Minimum Transaction Line (Debit): %s\n", min_deb_line);
+                    printf("Minimum Transaction (Debit): %s\n", min_deb_line);
                     fclose(fp);
                     flag = 1;
                     break;
@@ -815,7 +867,7 @@ int *maxTxn(tree *banks, int numberOfFiles, char *argv[]) {
                 strcpy(temp_line, max_cred_line); // Copy the line for tokenizing
                 char *line_token = strtok(temp_line, ","); // Extract serial number
                 if (strcmp(max_cred_srl, line_token) == 0) {
-                    printf("Maximum Transaction Line (Credit): %s\n", max_cred_line);
+                    printf("Maximum Transaction (Credit): %s\n", max_cred_line);
                     fclose(fp);
                     flag = 1;
                     break;
@@ -850,7 +902,7 @@ int *maxTxn(tree *banks, int numberOfFiles, char *argv[]) {
                 strcpy(temp_line, max_deb_line); // Copy the line for tokenizing
                 char *line_token = strtok(temp_line, ","); // Extract serial number
                 if (strcmp(max_deb_srl, line_token) == 0) {
-                    printf("Maximum Transaction Line (Debit): %s\n", max_deb_line);
+                    printf("Maximum Transaction (Debit): %s\n", max_deb_line);
                     fclose(fp);
                     flag = 1;
                     break;
@@ -1063,4 +1115,129 @@ void search_transactions(tree *bank, int numberOfFiles, char **fileNames) {
     for(int i = 0; i < numBanks; i++)
         free(bankNames[i]);
     free(bankNames);
+}
+
+void summary(root **banks, int numberOfFiles, char *argv[]){
+    
+    // count transactions
+    printf("*************************************************************************************************************");ln;ln;
+    printf("Count of transactions over each quarter");ln;ln;
+    int tot_txn = 0;
+    for(int i = 1; i <= 4; i++){
+        printf("Total transactions in quarter %d is : %d", i, txn_count_quart(banks, numberOfFiles, i)); ln;
+        tot_txn += txn_count_quart(banks, numberOfFiles, i);
+    }
+    printf("Total number of transactions overall are : %d", tot_txn); ln;ln;
+    printf("*************************************************************************************************************");ln;ln;
+    printf("Average quarterly credit and debit");ln;ln;
+    for(int i = 1; i <= 4; i++){
+        printf("Average amount credited in quarter %d is : %d", i, avg_quarterly_cred(banks, numberOfFiles, i));ln;
+        printf("Average amount debited in quarter %d is : %d", i, avg_quarterly_deb(banks, numberOfFiles, i));ln;ln;
+    }
+    printf("*************************************************************************************************************");ln;ln;
+    printf("Minimum amount credited and debited overall ");ln;ln;
+    int *min = minTxn_Summary(banks, numberOfFiles, argv);
+    int *max = maxTxn_Summary(banks, numberOfFiles, argv);
+    printf("Minimum amount credited is : %d", min[0]);ln;
+    printf("Minimum amount debited is : %d", min[1]);ln;ln;
+
+    printf("Maximum amount credited is : %d", max[0]);ln;
+    printf("Maximum amount debited is : %d", max[1]);ln;ln;
+    free(min);
+    free(max);
+
+    printf("**********  End of Summary  **********");ln;ln;
+    
+    printf("Do you want to generate plot for txn_count vs quarters [y / n] : ");
+    char one;
+    scanf(" %c", &one);  // Note the space before %c
+    if(one == 'y'){
+        generate_txn_count_graph(banks, numberOfFiles);
+    }
+    one = '\0';
+    
+    printf("Do you want to generate plot for avg_credit_debit vs quarters [y / n] : ");
+    char two;
+    scanf(" %c", &two);  // Note the space before %c
+    if(two == 'y'){
+        plot_avg_credit_debit(banks, numberOfFiles);
+    }
+    
+
+    return;
+}
+
+
+int *minTxn_Summary(tree *banks, int numberOfFiles, char *argv[]) {
+    int min_cred = INT_MAX;
+    int min_deb = INT_MAX;
+    int *min_store = (int *)malloc(sizeof(int) * 2);
+    if (!min_store) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    // Find minimum credit and debit transactions
+    for (int i = 0; i < numberOfFiles; i++) {
+        root *rootnode = *banks + i;
+        // Traverse all credit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->credit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount < min_cred) {
+                    min_cred = ptr->amount;                 
+                }
+                ptr = ptr->next;
+            }
+        }
+        // Traverse all debit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->debit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount < min_deb) {
+                    min_deb = ptr->amount;
+                }
+                ptr = ptr->next;
+            }
+        }
+    }
+    min_store[0] = min_cred;
+    min_store[1] = min_deb;
+    return min_store;
+}
+
+int *maxTxn_Summary(tree *banks, int numberOfFiles, char *argv[]) {
+    int max_cred = -1;
+    int max_deb = -1;
+    int *max_store = (int *)malloc(sizeof(int) * 2);
+    if (!max_store) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
+    }
+    // Find maximum credit and debit transactions
+    for (int i = 0; i < numberOfFiles; i++) {
+        root *rootnode = *banks + i;
+        // Traverse all credit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->credit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount > max_cred) {
+                    max_cred = ptr->amount;
+                }
+                ptr = ptr->next;
+            }
+        }
+        // Traverse all debit transactions
+        for (int j = 1; j <= 4; j++) {
+            amount *ptr = rootnode->debit->year->qArr[j - 1]->amounts;
+            while (ptr) {
+                if (ptr->amount > max_deb) {
+                    max_deb = ptr->amount;
+                }
+                ptr = ptr->next;
+            }
+        }
+    }
+    max_store[0] = max_cred;
+    max_store[1] = max_deb;
+    return max_store;
 }
